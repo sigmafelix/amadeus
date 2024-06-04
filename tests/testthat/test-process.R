@@ -266,7 +266,6 @@ testthat::test_that("process_modis_merge is good to go", {
     )
   )
 
-
 })
 
 
@@ -378,26 +377,30 @@ testthat::test_that("Other MODIS function errors", {
   testthat::expect_no_error(
     suppressWarnings(
       process_modis_swath(
-        path = path_mod06e,
+        path = path_mod06,
+        subdataset = "Cloud_Fraction_Night",
         date = "2021-08-15"
       )
     )
   )
   testthat::expect_error(
     process_modis_swath(
-      path = path_mod06e,
+      path = path_mod06,
+      subdataset = "Cloud_Fraction_Night",
       date = "2021~08~15"
     )
   )
   testthat::expect_error(
     process_modis_swath(
-      path = path_mod06e,
+      path = path_mod06,
+      subdataset = "Cloud_Fraction_Night",
       date = "2021-13-15"
     )
   )
   testthat::expect_error(
     process_modis_swath(
-      path = path_mod06e,
+      path = path_mod06,
+      subdataset = "Cloud_Fraction_Night",
       date = "2021-12-45"
     )
   )
@@ -483,11 +486,14 @@ testthat::test_that("process_nei tests", {
   path_cnty$GEOID <- path_cnty$FIPS
 
   testthat::expect_no_error(
-    neinc <- process_nei(path = path_nei, year = 2020, county = path_cnty)
+    neinc <- process_nei(path = path_nei, year = 2017, county = path_cnty)
   )
   testthat::expect_s4_class(neinc, "SpatVector")
 
   # error cases
+  testthat::expect_error(
+    process_nei(testthat::test_path("../testdata", "modis"), year = 2017)
+  )
   testthat::expect_error(
     process_nei(path_nei, year = 2030, county = path_cnty)
   )
@@ -503,7 +509,6 @@ testthat::test_that("process_nei tests", {
   )
 
 })
-
 
 
 ## ephemeral: process_conformity tests
@@ -608,7 +613,7 @@ testthat::test_that("process_hms returns expected.", {
     "Heavy"
   )
   # expect function
-  expect_true(
+  testthat::expect_true(
     is.function(process_hms)
   )
   for (d in seq_along(densities)) {
@@ -623,30 +628,30 @@ testthat::test_that("process_hms returns expected.", {
         )
       )
     # expect output is a SpatVector or character
-    expect_true(
+    testthat::expect_true(
       class(hms)[1] %in% c("SpatVector", "character")
     )
     if (class(hms)[1] == "SpatVector") {
       # expect non-null coordinate reference system
-      expect_false(
+      testthat::expect_false(
         is.null(terra::crs(hms))
       )
       # expect two columns
-      expect_true(
+      testthat::expect_true(
         ncol(hms) == 2
       )
       # expect density and date column
-      expect_true(
+      testthat::expect_true(
         all(c("Density", "Date") %in% names(hms))
       )
     } else if (class(hms)[1] == "character") {
       # expect first is density type
-      expect_true(
+      testthat::expect_true(
         hms[1] %in% c("Light", "Medium", "Heavy")
       )
-      # expect other elements are 8 character dates
-      expect_true(
-        all(nchar(hms[2:length(hms)]) == 8)
+      # expect other elements are 10 character dates
+      testthat::expect_true(
+        all(nchar(hms[2:length(hms)]) == 10)
       )
     }
   }
@@ -928,8 +933,8 @@ testthat::test_that("process_locs_vector vector data and missing columns.", {
       locs_id = "site_id"
     )
   )
-  # expect error when sites are SpatVector
-  expect_error(
+  # expect error when sites are SpatVector (points)
+  expect_no_error(
     calc_narr(
       from = narr,
       locs = terra::vect(
@@ -939,6 +944,45 @@ testthat::test_that("process_locs_vector vector data and missing columns.", {
       ),
       locs_id = "site_id"
     )
+  )
+  # expect error when sites are SpatVector (polygons)
+  expect_no_error(
+    calc_narr(
+      from = narr,
+      locs = terra::buffer(
+        terra::vect(
+          ncp,
+          geom = c("lon", "lat"),
+          crs = "EPSG:4326"
+        ),
+        1000
+      ),
+      locs_id = "site_id"
+    )
+  )
+  # expect error when sites are sf
+  expect_no_error(
+    calc_narr(
+      from = narr,
+      locs = sf::st_as_sf(
+        ncp,
+        coords = c("lon", "lat"),
+        crs = "EPSG:4326"
+      ),
+      locs_id = "site_id"
+    )
+  )
+  # error if one of "lat" or "lon" is missing (or both)
+  ncpp <- data.frame(long = -78.8277, lat = 35.95013)
+  ncpp$site_id <- "3799900018810101"
+
+  expect_error(
+    process_locs_vector(
+      locs = ncpp, crs = "EPSG:4326", 0
+    )
+  )
+  expect_error(
+    process_locs_vector(array(1))
   )
 })
 
@@ -961,30 +1005,100 @@ testthat::test_that("process_aqs", {
     aqs <- process_aqs(path = aqssub, date = NULL)
   )
   testthat::expect_no_error(
-    aqse <- process_aqs(
+    aqsft <- process_aqs(
       path = aqssub,
-      date = c("2022-02-04", "2022-02-28")
+      date = c("2022-02-04", "2022-02-28"),
+      mode = "full",
+      return_format = "terra"
+    )
+  )
+  testthat::expect_no_error(
+    aqsst <- process_aqs(
+      path = aqssub,
+      date = c("2022-02-04", "2022-02-28"),
+      mode = "sparse",
+      return_format = "terra"
+    )
+  )
+  testthat::expect_no_error(
+    aqslt <- process_aqs(
+      path = aqssub,
+      date = c("2022-02-04", "2022-02-28"),
+      mode = "location",
+      return_format = "terra"
     )
   )
 
   # expect
   testthat::expect_s4_class(aqs, "SpatVector")
-  testthat::expect_s4_class(aqse, "SpatVector")
+  testthat::expect_s4_class(aqsft, "SpatVector")
+  testthat::expect_s4_class(aqsst, "SpatVector")
+  testthat::expect_s4_class(aqslt, "SpatVector")
+
+  testthat::expect_no_error(
+    aqsfs <- process_aqs(
+      path = aqssub,
+      date = c("2022-02-04", "2022-02-28"),
+      mode = "full",
+      return_format = "sf"
+    )
+  )
+  testthat::expect_no_error(
+    aqsss <- process_aqs(
+      path = aqssub,
+      date = c("2022-02-04", "2022-02-28"),
+      mode = "sparse",
+      return_format = "sf"
+    )
+  )
+  testthat::expect_no_error(
+    aqsls <- process_aqs(
+      path = aqssub,
+      date = c("2022-02-04", "2022-02-28"),
+      mode = "location",
+      return_format = "sf"
+    )
+  )
+  testthat::expect_s3_class(aqsfs, "sf")
+  testthat::expect_s3_class(aqsss, "sf")
+  testthat::expect_s3_class(aqsls, "sf")
+
+  testthat::expect_no_error(
+    aqsfd <- process_aqs(
+      path = aqssub,
+      date = c("2022-02-04", "2022-02-28"),
+      mode = "full",
+      return_format = "data.table"
+    )
+  )
+  testthat::expect_no_error(
+    aqssd <- process_aqs(
+      path = aqssub,
+      date = c("2022-02-04", "2022-02-28"),
+      mode = "sparse",
+      return_format = "data.table"
+    )
+  )
+  testthat::expect_no_error(
+    aqsld <- process_aqs(
+      path = aqssub,
+      date = c("2022-02-04", "2022-02-28"),
+      mode = "location",
+      return_format = "data.table"
+    )
+  )
+  testthat::expect_s3_class(aqsfd, "data.table")
+  testthat::expect_s3_class(aqssd, "data.table")
+  testthat::expect_s3_class(aqsld, "data.table")
 
   testthat::expect_no_error(
     aqssf <- process_aqs(path = aqssub, date = NULL, return_format = "sf")
   )
   testthat::expect_no_error(
-    aqsesf <- process_aqs(
-      path = aqssub,
-      date = c("2022-02-04", "2022-02-28"),
-      return_format = "sf"
-    )
-  )
-  testthat::expect_no_error(
     aqssf <- process_aqs(
       path = testd,
       date = c("2022-02-04", "2022-02-28"),
+      mode = "location",
       return_format = "sf"
     )
   )
@@ -1000,10 +1114,11 @@ testthat::test_that("process_aqs", {
 
   # expect
   testthat::expect_s3_class(aqssf, "sf")
-  testthat::expect_s3_class(aqsesf, "sf")
-
 
   # error cases
+  testthat::expect_error(
+    process_aqs(testthat::test_path("../testdata", "modis"))
+  )
   testthat::expect_error(
     process_aqs(path = 1L)
   )
@@ -1363,47 +1478,55 @@ testthat::test_that("gridmet and terraclimate auxiliary functions.", {
 
 
 # test PRISM ####
-test_that("process_prism returns a SpatRaster object with correct metadata", {
-  # Set up test data
-  withr::local_package("terra")
-  path <- testthat::test_path(
-    "..", "testdata", "prism", "PRISM_tmin_30yr_normal_4kmD1_0228_bil_test.nc"
-  )
-  path_dir <- testthat::test_path(
-    "..", "testdata", "prism"
-  )
-  element <- "tmin"
-  time <- "0228"
+testthat::test_that(
+  "process_prism returns a SpatRaster object with correct metadata",
+  {
+    # Set up test data
+    withr::local_package("terra")
+    path <- testthat::test_path(
+      "..", "testdata", "prism", "PRISM_tmin_30yr_normal_4kmD1_0228_bil_test.nc"
+    )
+    path_dir <- testthat::test_path(
+      "..", "testdata", "prism"
+    )
+    element <- "tmin"
+    time <- "0228"
 
-  # Call the function
-  expect_no_error(result <- process_prism(path, element, time))
-  expect_no_error(result2 <- process_prism(path_dir, element, time))
+    # Call the function
+    testthat::expect_no_error(result <- process_prism(path, element, time))
+    testthat::expect_no_error(result2 <- process_prism(path_dir, element, time))
 
-  # Check the return type
-  expect_true(inherits(result, "SpatRaster"))
-  expect_true(inherits(result2, "SpatRaster"))
+    # Check the return type
+    testthat::expect_true(inherits(result, "SpatRaster"))
+    testthat::expect_true(inherits(result2, "SpatRaster"))
 
-  # Check the metadata
-  expect_equal(unname(terra::metags(result)["time"]), time)
-  expect_equal(unname(terra::metags(result)["element"]), element)
+    # Check the metadata
+    testthat::expect_equal(unname(terra::metags(result)["time"]), time)
+    testthat::expect_equal(unname(terra::metags(result)["element"]), element)
 
-  # Set up test data
-  path_bad <- "/path/to/nonexistent/folder"
-  element_bad <- "invalid_element"
-  time_bad <- "invalid_time"
+    # Set up test data
+    path_bad <- "/path/to/nonexistent/folder"
+    element_bad <- "invalid_element"
+    time_bad <- "invalid_time"
 
-  # Call the function and expect an error
-  expect_error(process_prism(NULL, element, time))
-  expect_error(process_prism(path_bad, element, time))
-  expect_error(process_prism(path_dir, element_bad, time))
-  expect_error(process_prism(path_dir, element, time_bad))
-})
+    # Call the function and expect an error
+    testthat::expect_error(process_prism(NULL, element, time))
+    testthat::expect_error(
+      testthat::expect_warning(
+        process_prism(path_bad, element, time)
+      )
+    )
+    testthat::expect_error(process_prism(path_dir, element_bad, time))
+    testthat::expect_error(process_prism(path_dir, element, time_bad))
+  }
+)
 
 
 # test CropScape ####
 testthat::test_that(
   "process_cropscape returns a SpatRaster object with correct metadata", {
     # Set up test data
+    withr::local_package("terra")
     filepath <-
       testthat::test_path("..", "testdata/cropscape/cdl_30m_r_nc_2019_sub.tif")
     dirpath <- testthat::test_path("..", "testdata/cropscape")
@@ -1476,24 +1599,13 @@ testthat::test_that("process_huc",
       )
     )
 
-
     # Set up test data
-    path <- file.path(path, "..")
+    path2 <- testthat::test_path(
+      "..", "testdata", "huc12"
+    )
 
     # Call the function and expect an error
-    testthat::expect_error(process_huc(path))
-    # using nhdplusTools
-    testthat::expect_no_error(
-      test3 <- process_huc(
-        "",
-        layer_name = NULL,
-        huc_level = NULL,
-        huc_header = NULL,
-        id = "030202",
-        type = "huc06"
-      )
-    )
-    testthat::expect_s4_class(test3, "SpatVector")
+    testthat::expect_error(process_huc(path2))
   }
 )
 

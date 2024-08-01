@@ -189,10 +189,9 @@ download_unzip <-
 #' @param remove logical(1). Confirm removal. Default is FALSE.
 #' @param download_name character. Full zip file path
 #' @note
-#' !!! USE THE FUNCTION WITH CAUTION !!!
 #' If \code{remove = TRUE}, ensure that \code{unzip = TRUE}. Choosing to remove
 #' ".zip" files without unzipping will retain none of the downloaded data.
-#' then it will remove all files in the second higher level directory.
+#' then it will remove all files in the first higher level directory.
 #' @return NULL
 #' @keywords internal
 #' @export
@@ -205,7 +204,7 @@ download_remove_zips <-
       file.remove(download_name)
       # oftentimes zipfiles are stored in zip_files under
       # directory_to_save in download functions.
-      unlink(dirname(dirname(download_name)), recursive = TRUE)
+      unlink(dirname(download_name), recursive = TRUE)
       message(paste0("Download files removed.\n"))
     }
   }

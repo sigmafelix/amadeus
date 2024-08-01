@@ -1,10 +1,12 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://niehs.github.io/amadeus/404.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/LICENSE-text.html</loc></url>
+<url><loc>https://niehs.github.io/amadeus/LICENSE.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/articles/download_functions.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/articles/epa_download.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/articles/index.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/articles/protected_datasets.html</loc></url>
+<url><loc>https://niehs.github.io/amadeus/articles/workflow.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/authors.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/index.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/apply_extent.html</loc></url>
@@ -57,7 +59,6 @@
 <url><loc>https://niehs.github.io/amadeus/reference/download_narr.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/download_nei.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/download_nlcd.html</loc></url>
-<url><loc>https://niehs.github.io/amadeus/reference/download_olm.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/download_permit.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/download_prism.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/download_remove_command.html</loc></url>
@@ -77,7 +78,6 @@
 <url><loc>https://niehs.github.io/amadeus/reference/generate_time_sequence.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/index.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/is_date_proper.html</loc></url>
-<url><loc>https://niehs.github.io/amadeus/reference/list_stac_files.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/narr_variable.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/process_aqs.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/process_blackmarble.html</loc></url>
@@ -107,7 +107,6 @@
 <url><loc>https://niehs.github.io/amadeus/reference/process_narr.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/process_nei.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/process_nlcd.html</loc></url>
-<url><loc>https://niehs.github.io/amadeus/reference/process_olm.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/process_prism.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/process_sedac_codes.html</loc></url>
 <url><loc>https://niehs.github.io/amadeus/reference/process_sedac_groads.html</loc></url>
